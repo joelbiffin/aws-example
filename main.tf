@@ -54,9 +54,21 @@ resource "aws_lambda_permission" "allow_cloudwatch_to_trigger_hello_word" {
 }
 
 
+resource "aws_s3_bucket" "lamdba_bucket" {
+    bucket = "lambda-source-code"
+}
+
+resource "aws_s3_object" "lambda_hello_world" {
+    bucket = aws_s3_bucket.lambda_bucket.id
+    etag   = filemd5(data.archive_file.hello_world_function.output_path)
+    key    = aws_lambda_function.function_name
+    source = data.archive_file.hello_world_function.output_path
+}
+
+
 data "archive_file" "hello_world_function" {
-    output_path = "hello_world_lambda.zip"
-    source      = "lambda/hello_world/main.py"
+    output_path = "${path.module}/lambda/hello_world.zip"
+    source      = "${path.module}/lambda/hello_world/main.py"
     type        = "zip"
 }
 
@@ -69,4 +81,3 @@ resource "aws_lambda_function" "hello_world" {
     source_code_hash = data.archive_file.hello_world_function.output_base64sha256
     timeout          = 10
 }
-
