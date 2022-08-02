@@ -37,7 +37,7 @@ resource "aws_iam_role" "lambda_role" {
 resource "aws_cloudwatch_event_rule" "every_minute" {
     description         = "Triggers every minute"
     name                = "every_minute"
-    schedule_expression = "rate(1 hour)"
+    schedule_expression = "rate(5 minutes)"
 }
 
 resource "aws_cloudwatch_event_target" "trigger_hello_world_every_minute" {
@@ -81,4 +81,32 @@ resource "aws_lambda_function" "hello_world" {
     runtime          = "python3.9"
     source_code_hash = data.archive_file.hello_world_function.output_base64sha256
     timeout          = 10
+}
+
+
+data "aws_iam_policy_document" "lambda_loggable_role_policy" {
+    statement {
+        actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+        effect    = "Allow"
+        resources = ["arn:aws:logs:*:*:*"]
+    }
+}
+
+resource "aws_iam_policy" "lambda_logging_policy" {
+    name   = "lambda_logging_policy"
+    policy = data.aws_iam_policy_document.lambda_loggable_role_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_logging_policy_attachment" {
+    policy_arn = aws_iam_policy.lambda_logging_policy.arn
+    role       = aws_iam_role.lambda_role.id
+}
+
+resource "aws_cloudwatch_log_group" "function_log_group" {
+    name              = "/aws/lambda/${aws_lambda_function.hello_world.function_name}"
+    retention_in_days = 7
+
+    lifecycle {
+        prevent_destroy = false
+    }
 }
