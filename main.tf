@@ -42,6 +42,12 @@ resource "aws_cloudwatch_event_rule" "every_minute" {
 
 resource "aws_cloudwatch_event_target" "trigger_hello_world_every_minute" {
     arn       = aws_lambda_function.hello_world.arn
+    input     = jsonencode({
+        "hello" = "world"
+        "foo" = {
+            "bar" = "baz"
+        }
+    })
     rule      = aws_cloudwatch_event_rule.every_minute.name
     target_id = "hello_world"
 }
