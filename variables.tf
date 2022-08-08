@@ -1,4 +1,4 @@
-variable "aws_access_key" { }
-variable "aws_key_path" { }
-variable "aws_secret_key" { }
-variable "aws_region" { }
+variable "aws_access_key" { type = string }
+variable "aws_key_path" { type = string }
+variable "aws_secret_key" { type = string }
+variable "aws_region" { type = string }
